@@ -1,4 +1,5 @@
-# generator-typo3ext [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+# generator-typo3ext
+
 > This kickstarts a simple TYPO3 extension
 
 ## Installation
@@ -10,27 +11,23 @@ npm install -g yo
 npm install -g generator-typo3ext
 ```
 
-Then generate your new project:
+## Usage
+
+Generate your new extension:
 
 ```bash
+mkdir typo3conf/ext/new_extension
+cd typo3conf/ext/new_extension
+
 yo typo3ext
 ```
 
-## Getting To Know Yeoman
+Need some CLI command controller?
 
- * Yeoman has a heart of gold.
- * Yeoman is a person with feelings and opinions, but is very easy to work with.
- * Yeoman can be too opinionated at times but is easily convinced not to be.
- * Feel free to [learn more about Yeoman](http://yeoman.io/).
+```bash
+yo typo3ext:cli [--skip-prompting]
+```
 
 ## License
 
-MPL-2.0 © [Philipp Kitzberger]()
-
-
-[npm-image]: https://badge.fury.io/js/generator-typo-3-ext.svg
-[npm-url]: https://npmjs.org/package/generator-typo-3-ext
-[travis-image]: https://travis-ci.org/Kitzberger/generator-typo-3-ext.svg?branch=master
-[travis-url]: https://travis-ci.org/Kitzberger/generator-typo-3-ext
-[daviddm-image]: https://david-dm.org/Kitzberger/generator-typo-3-ext.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/Kitzberger/generator-typo-3-ext
+MPL-2.0 © [Philipp Kitzberger](https://github.com/kitzberger)
