@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Philipp Kitzberger",
+      "authorEmail": "philipp@kitze.net",
+      "authorUrl": ""
+    }
+  }
+}
