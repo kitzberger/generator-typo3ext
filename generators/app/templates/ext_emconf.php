@@ -1,7 +1,7 @@
 <?php
 
 $EM_CONF[$_EXTKEY] = array(
-	'title' => '<%- ext_key %>',
+	'title' => '<%- ext_name %>',
 	'description' => '<%- ext_desc %>',
 	'category' => 'system',
 	'shy' => 0,
