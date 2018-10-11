@@ -1,0 +1,16 @@
+{
+	"name": "<%- package_name %>",
+	"type": "typo3-cms-extension",
+	"description": "TYPO3 <%- ext_name %>",
+	"homepage": "https://github.com/<%- vendor_name %>/<%- ext_key %>",
+	"license": ["GPL-2.0+"],
+	"keywords": ["TYPO3 CMS"],
+	"require": {
+		"typo3/cms": ">=<%- t3_version %>"
+	},
+	"autoload": {
+		"psr-4": {
+			"<%- VendorName %>\\<%- ExtKey %>\\": "Classes/"
+		}
+	}
+}

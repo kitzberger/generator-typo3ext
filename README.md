@@ -1,4 +1,4 @@
-# generator-typo-3-ext [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+# generator-typo3ext [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
 > This kickstarts a simple TYPO3 extension
 
 ## Installation
@@ -7,13 +7,13 @@ First, install [Yeoman](http://yeoman.io) and generator-typo-3-ext using [npm](h
 
 ```bash
 npm install -g yo
-npm install -g generator-typo-3-ext
+npm install -g generator-typo3ext
 ```
 
 Then generate your new project:
 
 ```bash
-yo typo-3-ext
+yo typo3ext
 ```
 
 ## Getting To Know Yeoman
