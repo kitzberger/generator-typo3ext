@@ -4,11 +4,24 @@
 
 ## Installation
 
-First, install [Yeoman](http://yeoman.io) and generator-typo-3-ext using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/)).
+First, install [Yeoman](http://yeoman.io) and generator-typo3ext using [npm](https://www.npmjs.com/) (we assume you have pre-installed [node.js](https://nodejs.org/) 10.x).
 
 ```bash
 npm install -g yo
+```
+
+### Via npm (not possible yet)
+
+```
 npm install -g generator-typo3ext
+```
+
+### Via git
+
+```
+git clone https://github.com/kitzberger/generator-typo3ext.git
+cd generator-typo3ext
+npm link
 ```
 
 ## Usage
