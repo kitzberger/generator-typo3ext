@@ -143,6 +143,7 @@ module.exports = class BaseGenerator extends Generator {
     this.config.set('package_name'             , answers.vendor_name.toLowerCase().replace('_', '-') + '/' + answers.ext_key.replace('_', '-'))
     this.config.set('VendorName'               , answers.vendor_name.ToCamelCase())
     this.config.set('ExtKey'                   , answers.ext_key.ToCamelCase())
+    this.config.set('extkey'                   , answers.ext_key.toLowerCase().replace('_', ''))
 
     this.config.set('t3_version'               , answers.t3_version)
     this.config.set('t3_language'              , answers.t3_language)

@@ -76,6 +76,6 @@
     "precommit": "lint-staged",
     "test": "jest"
   },
-  "repository": "git@bitbucket.org:kitze/home-dir.git",
+  "repository": "git@github.com:kitzberger/generator-typo3ext.git",
   "license": "MPL-2.0"
 }

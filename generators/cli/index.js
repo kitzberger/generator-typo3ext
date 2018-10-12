@@ -62,9 +62,6 @@ module.exports = class extends BaseGenerator {
     var regex = /^\/\/ BEGIN$([\s\S]*)^\/\/ END$/gm
       , snippet = regex.exec(sourceContent)
 
-    console.log(sourceContent)
-    console.dir(snippet)
-
     var content = ejs.render(snippet[1], variables)
 
     this.fs.append(target, content)
