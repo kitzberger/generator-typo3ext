@@ -59,6 +59,8 @@
       "node": true
     },
     "rules": {
+      "camelcase": "off",
+      "no-extend-native": "off",
       "prettier/prettier": [
         "error",
         {
