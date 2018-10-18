@@ -7,7 +7,7 @@ const ejs = require('ejs');
 
 module.exports = class extends BaseGenerator {
   async prompting() {
-    //await super._promptingBasic();
+    await super._promptingBasic();
     await this._promptingCli();
   }
 
@@ -28,11 +28,21 @@ module.exports = class extends BaseGenerator {
       models = {};
     }
 
-    this.model = await this.prompt([{
+    if (this.options.skipPrompting) {
+      if (Object.keys(models).length) {
+        this.log(chalk.green('Skip prompting, reading .yo-rc.json instead!'));
+        return;
+      }
+      this.log(chalk.yellow('Sorry, cannot skip prompting, no models defined in .yo-rc.json!'));
+    }
+
+    this.model = await this.prompt([
+      {
         type: 'input',
         name: 'name',
         message: 'Name of model?'
-    }]);
+      }
+    ]);
 
     this.model.properties = [];
 
@@ -47,7 +57,11 @@ module.exports = class extends BaseGenerator {
           type: 'list',
           name: 'type',
           message: 'Type of the property?',
-          choices: ['string', 'integer', 'date', 'datetime'],
+          choices: [
+            'string', 'integer', 'boolean', 'date', 'datetime',
+            '\\Vendor\\Extension\\Domain\\Model\\...',
+            '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<\\Vendor\\Extension\\Domain\\Model\\...>'
+          ],
           default: 'string'
         },
         {
@@ -63,7 +77,7 @@ module.exports = class extends BaseGenerator {
       });
     } while (property.continue);
 
-console.dir(this.model);
+    console.dir(this.model);
 
     models[this.model.name] = this.model.properties;
     this.config.set('models', models);
@@ -71,7 +85,61 @@ console.dir(this.model);
 
   writing() {
     var variables = this.config.getAll();
-    console.dir(this.model);
+    //variables.command = this.cliAnswers.command.lcfirst();
+    //variables.Command = this.cliAnswers.command.ucfirst();
+
+    Object.keys(variables.models).forEach(
+      function(modelName, index) {
+        //console.dir(index);
+        //console.dir(modelName);
+        //console.dir(variables.models[modelName]);
+        this._writingModel(modelName, variables.models[modelName], variables);
+      },
+      this
+    )
+  }
+
+  _writingModel(modelName, modelProperties, variables) {
+    var variables = variables;
+    variables.modelName = modelName.lcfirst();
+    variables.ModelName = modelName.ucfirst();
+
+    // Step 1: create file, if necessary
+    var source = 'Classes/Domain/Model/ModelTemplate.php';
+    var target = 'Classes/Domain/Model/' + variables.ModelName + '.php';
+
+    if (this.fs.exists(target) === false) {
+      this.log('Creating ' + target);
+      this.fs.copyTpl(this.templatePath(source), this.destinationPath(target), variables);
+    } else {
+      this.log('Class already existing: ' + target);
+    }
+
+    // Step 2: modify file
+    source = this.templatePath('Classes/Domain/Model/ModelProperties.php');
+    target = this.destinationPath('Classes/Domain/Model/' + variables.ModelName + '.php');
+
+    this.log('Modifying ' + target);
+    var sourceContent = this.fs.read(source);
+    var targetContent = this.fs.read(target);
+
+    var snippet = this._getTemplateSnippet('PROPERTY_DEF', sourceContent);
+
+    var content = ejs.render(snippet, variables);
+
+    this.fs.append(targetContent, content);
+  }
+
+  _writingProperty(propertyName, propertyType, variables) {
+
+  }
+
+  _getTemplateSnippet(snippetName, content) {
+    var regex = new RegExp('^// BEGIN_' + snippetName + '$([\\s\\S]*)^// END_' + snippetName + '$', 'gms');
+    var snippet = regex.exec(content);
+    //this.log(regex);
+    //this.log(snippet);
+    return snippet[1];
   }
 
   install() {}
