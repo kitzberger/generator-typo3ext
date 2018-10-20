@@ -33,7 +33,9 @@ module.exports = class extends BaseGenerator {
         this.log(chalk.green('Skip prompting, reading .yo-rc.json instead!'));
         return;
       }
-      this.log(chalk.yellow('Sorry, cannot skip prompting, no models defined in .yo-rc.json!'));
+      this.log(
+        chalk.yellow('Sorry, cannot skip prompting, no models defined in .yo-rc.json!')
+      );
     }
 
     this.model = await this.prompt([
@@ -58,7 +60,11 @@ module.exports = class extends BaseGenerator {
           name: 'type',
           message: 'Type of the property?',
           choices: [
-            'string', 'integer', 'boolean', 'date', 'datetime',
+            'string',
+            'integer',
+            'boolean',
+            'date',
+            'datetime',
             '\\Vendor\\Extension\\Domain\\Model\\...',
             '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<\\Vendor\\Extension\\Domain\\Model\\...>'
           ],
@@ -85,18 +91,15 @@ module.exports = class extends BaseGenerator {
 
   writing() {
     var variables = this.config.getAll();
-    //variables.command = this.cliAnswers.command.lcfirst();
-    //variables.Command = this.cliAnswers.command.ucfirst();
+    // Variables.command = this.cliAnswers.command.lcfirst();
+    // variables.Command = this.cliAnswers.command.ucfirst();
 
-    Object.keys(variables.models).forEach(
-      function(modelName, index) {
-        //console.dir(index);
-        //console.dir(modelName);
-        //console.dir(variables.models[modelName]);
-        this._writingModel(modelName, variables.models[modelName], variables);
-      },
-      this
-    )
+    Object.keys(variables.models).forEach(function(modelName, index) {
+      // Console.dir(index);
+      // console.dir(modelName);
+      // console.dir(variables.models[modelName]);
+      this._writingModel(modelName, variables.models[modelName], variables);
+    }, this);
   }
 
   _writingModel(modelName, modelProperties, variables) {
@@ -116,30 +119,49 @@ module.exports = class extends BaseGenerator {
     }
 
     // Step 2: modify file
-    source = this.templatePath('Classes/Domain/Model/ModelProperties.php');
-    target = this.destinationPath('Classes/Domain/Model/' + variables.ModelName + '.php');
-
     this.log('Modifying ' + target);
-    var sourceContent = this.fs.read(source);
-    var targetContent = this.fs.read(target);
 
-    var snippet = this._getTemplateSnippet('PROPERTY_DEF', sourceContent);
+    Object.keys(modelProperties).forEach(function(index) {
+      this._writingProperty(modelProperties[index], variables);
+    }, this);
 
-    var content = ejs.render(snippet, variables);
 
-    this.fs.append(targetContent, content);
+    //this.fs.append(targetContent, content);
   }
 
-  _writingProperty(propertyName, propertyType, variables) {
+  _writingProperty(property, variables) {
+    var source = this.templatePath('Classes/Domain/Model/ModelProperties.php');
+    var sourceContent = this.fs.read(source);
 
+    var target =  this.destinationPath('Classes/Domain/Model/' + variables.ModelName + '.php');
+    var targetContent = this.fs.read(target);
+
+    var snippet = '';
+
+    variables.propertyName = property.name;
+    variables.propertyType = property.type;
+    variables.propertyDefault = 'null';
+
+    if (property.type === 'string' || property.type === 'integer') {
+      snippet = this._getTemplateSnippet('PROPERTY_DEF', sourceContent);
+      snippet = ejs.render(snippet, variables);
+      console.dir(snippet);
+
+      targetContent = targetContent.replace('// END_PROPERTY_DEF', snippet + "\n\n" + '// END_PROPERTY_DEF');
+    }
+
+    this.fs.write(target, targetContent);
   }
 
   _getTemplateSnippet(snippetName, content) {
-    var regex = new RegExp('^// BEGIN_' + snippetName + '$([\\s\\S]*)^// END_' + snippetName + '$', 'gms');
+    var regex = new RegExp(
+      '^// BEGIN_' + snippetName + '$([\\s\\S]*)^// END_' + snippetName + '$',
+      'gms'
+    );
     var snippet = regex.exec(content);
-    //this.log(regex);
-    //this.log(snippet);
-    return snippet[1];
+    // This.log(regex);
+    // this.log(snippet);
+    return snippet[1].replace(/^\n+|\n+$/g, '');
   }
 
   install() {}
