@@ -61,6 +61,7 @@ module.exports = class extends BaseGenerator {
           message: 'Type of the property?',
           choices: [
             'string',
+            'text',
             'integer',
             'boolean',
             'date',
@@ -93,19 +94,16 @@ module.exports = class extends BaseGenerator {
     var variables = this.config.getAll();
 
     for (let [modelName, modelProperties] of Object.entries(variables.models)) {
-      this._writingModel(modelName, modelProperties, variables);
+      variables.modelName = modelName.lcfirst();
+      variables.ModelName = modelName.ucfirst();
+      variables.table = 'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
+      this._writingModelFiles(modelName, modelProperties, variables);
+      this._writingSQL(modelName, modelProperties, variables);
     }
   }
 
-  _writingModel(modelName, modelProperties, variables) {
-    var variables = variables;
-    variables.modelName = modelName.lcfirst();
-    variables.ModelName = modelName.ucfirst();
-    variables.table = 'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
-
-    this.log(
-      chalk.yellow('Writing model "' + variables.ModelName + '"')
-    );
+  _writingModelFiles(modelName, modelProperties, variables) {
+    this.log(chalk.yellow('Writing model "' + variables.ModelName + '"'));
 
     // Step 1: create files, if necessary
     var files = [
@@ -120,30 +118,33 @@ module.exports = class extends BaseGenerator {
       [
         'Resources/Private/Language/table.xlf',
         'Resources/Private/Language/' + variables.table + '.xlf'
-      ],
+      ]
     ];
 
     for (let [source, target] of files) {
-
       if (this.fs.exists(target) === false) {
-        this.log('Creating ' + target);
-        this.fs.copyTpl(this.templatePath(source), this.destinationPath(target), variables);
+        this.fs.copyTpl(
+          this.templatePath(source),
+          this.destinationPath(target),
+          variables
+        );
       } else {
-        this.log('Class already existing: ' + target);
+        this.log('File already existing: ' + target);
       }
 
       // Step 2: modifying files
       switch (source) {
         case 'Classes/Domain/Model/ModelTemplate.php':
           for (let property of modelProperties) {
-            this._writingModelProperty(property, variables)
+            this._writingModelProperty(property, variables);
           }
           break;
         case 'Resources/Private/Language/table.xlf':
           for (let property of modelProperties) {
-            this._writingLanguage(property, variables)
+            this._writingLanguage(property, variables);
           }
           break;
+        default:
       }
     }
   }
@@ -154,11 +155,19 @@ module.exports = class extends BaseGenerator {
     variables.propertyDefault = 'null';
 
     this.log(
-      chalk.yellow('Writing model property "' + variables.ModelName + '->' + variables.propertyName + '"')
+      chalk.yellow(
+        'Writing model property "' +
+          variables.ModelName +
+          '->' +
+          variables.propertyName +
+          '"'
+      )
     );
 
     var source = this.templatePath('Classes/Domain/Model/ModelProperties.php');
-    var target = this.destinationPath('Classes/Domain/Model/' + variables.ModelName + '.php');
+    var target = this.destinationPath(
+      'Classes/Domain/Model/' + variables.ModelName + '.php'
+    );
     var sourceContent = this.fs.read(source);
     var targetContent = this.fs.read(target);
 
@@ -171,7 +180,7 @@ module.exports = class extends BaseGenerator {
       if (snippet.length > 0) {
         targetContent = targetContent.replace(
           '// END_PROPERTY_DEF',
-          snippet + '\n\n' + '// END_PROPERTY_DEF'
+          snippet + '\n\n// END_PROPERTY_DEF'
         );
       }
     }
@@ -184,11 +193,15 @@ module.exports = class extends BaseGenerator {
     variables.PropertyName = property.name.ucfirst();
 
     this.log(
-      chalk.yellow('Writing language file "' + variables.table + '" (' + variables.property + ')')
+      chalk.yellow(
+        'Writing language file "' + variables.table + '" (' + variables.property + ')'
+      )
     );
 
     var source = this.templatePath('Resources/Private/Language/property.xlf');
-    var target = this.destinationPath('Resources/Private/Language/' + variables.table + '.xlf');
+    var target = this.destinationPath(
+      'Resources/Private/Language/' + variables.table + '.xlf'
+    );
     var sourceContent = this.fs.read(source);
     var targetContent = this.fs.read(target);
 
@@ -198,14 +211,82 @@ module.exports = class extends BaseGenerator {
     snippet = ejs.render(snippet, variables);
 
     if (snippet.length > 0) {
-      if (targetContent.indexOf(snippet) < 0) { // only replace if _not_ already in target file
-        targetContent = targetContent.replace(
-          /(\s*<\/body>)/,
-          '\n' + snippet + '$1'
+      if (targetContent.indexOf(snippet) < 0) {
+        // Only replace if _not_ already in target file
+        targetContent = targetContent.replace(/(\s*<\/body>)/, '\n' + snippet + '$1');
+      }
+    }
+
+    this.fs.write(target, targetContent);
+  }
+
+  _writingSQL(modelName, modelProperties, variables) {
+    this.log(chalk.yellow('Writing SQL file "ext_tables.sql" (' + variables.table + ')'));
+
+    var source = this.templatePath('ext_tables.sql');
+    var target = this.destinationPath('ext_tables.sql');
+
+    if (this.fs.exists(target) === false) {
+      this.log('Creating ' + target);
+      this.fs.write(target, '');
+    } else {
+      this.log('File already existing: ' + target);
+    }
+
+    var sourceContent = this.fs.read(source);
+    var targetContent = this.fs.read(target);
+
+    var snippet = '';
+
+    var tableCreateStatement = 'CREATE TABLE ' + variables.table;
+
+    // Create table
+    if (targetContent.indexOf(tableCreateStatement) < 0) {
+      snippet = this._getTemplateSnippet('TABLE', sourceContent);
+      snippet = ejs.render(snippet, variables);
+      targetContent = targetContent + '\n' + snippet;
+    }
+
+    // Get table statement
+    var regex = new RegExp('^' + tableCreateStatement + ' (.*)', 'gms');
+    var targetContentTableBefore = regex.exec(targetContent)[0];
+    var targetContentTableAfter = targetContentTableBefore;
+
+    // Foreach properties
+    for (let property of modelProperties) {
+      variables.field = property.name;
+      let sqlType;
+      switch (property.type) {
+        case 'integer':
+          sqlType = 'INT';
+          break;
+        case 'boolean':
+          sqlType = 'BOOLEAN';
+          break;
+        case 'string':
+          sqlType = 'VARCHAR';
+          break;
+        default:
+          sqlType = 'TEXT';
+      }
+      snippet = this._getTemplateSnippet('FIELD_' + sqlType, sourceContent);
+      snippet = ejs.render(snippet, variables);
+
+      if (targetContentTableAfter.indexOf(snippet) < 0) {
+        targetContentTableAfter = targetContentTableAfter.replace(
+          '\n);',
+          ',\n' + snippet + '\n);'
         );
       }
     }
 
+    // Set table statement
+    targetContent = targetContent.replace(
+      targetContentTableBefore,
+      targetContentTableAfter
+    );
+
+    // Write file
     this.fs.write(target, targetContent);
   }
 
