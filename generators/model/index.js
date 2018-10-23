@@ -21,11 +21,11 @@ module.exports = class extends BaseGenerator {
     }
 
     let models = this.config.get('models');
-    if (models !== undefined) {
+    if (models === undefined) {
+      models = {};
+    } else {
       this.log('These models are already in the config:');
       console.dir(models);
-    } else {
-      models = {};
     }
 
     if (this.options.skipPrompting) {
@@ -91,63 +91,119 @@ module.exports = class extends BaseGenerator {
 
   writing() {
     var variables = this.config.getAll();
-    // Variables.command = this.cliAnswers.command.lcfirst();
-    // variables.Command = this.cliAnswers.command.ucfirst();
 
-    Object.keys(variables.models).forEach(function(modelName, index) {
-      // Console.dir(index);
-      // console.dir(modelName);
-      // console.dir(variables.models[modelName]);
-      this._writingModel(modelName, variables.models[modelName], variables);
-    }, this);
+    for (let [modelName, modelProperties] of Object.entries(variables.models)) {
+      this._writingModel(modelName, modelProperties, variables);
+    }
   }
 
   _writingModel(modelName, modelProperties, variables) {
     var variables = variables;
     variables.modelName = modelName.lcfirst();
     variables.ModelName = modelName.ucfirst();
+    variables.table = 'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
 
-    // Step 1: create file, if necessary
-    var source = 'Classes/Domain/Model/ModelTemplate.php';
-    var target = 'Classes/Domain/Model/' + variables.ModelName + '.php';
+    this.log(
+      chalk.yellow('Writing model "' + variables.ModelName + '"')
+    );
 
-    if (this.fs.exists(target) === false) {
-      this.log('Creating ' + target);
-      this.fs.copyTpl(this.templatePath(source), this.destinationPath(target), variables);
-    } else {
-      this.log('Class already existing: ' + target);
+    // Step 1: create files, if necessary
+    var files = [
+      [
+        'Classes/Domain/Model/ModelTemplate.php',
+        'Classes/Domain/Model/' + variables.ModelName + '.php'
+      ],
+      [
+        'Classes/Domain/Repository/ModelRepository.php',
+        'Classes/Domain/Repository/' + variables.ModelName + 'Repository.php'
+      ],
+      [
+        'Resources/Private/Language/table.xlf',
+        'Resources/Private/Language/' + variables.table + '.xlf'
+      ],
+    ];
+
+    for (let [source, target] of files) {
+
+      if (this.fs.exists(target) === false) {
+        this.log('Creating ' + target);
+        this.fs.copyTpl(this.templatePath(source), this.destinationPath(target), variables);
+      } else {
+        this.log('Class already existing: ' + target);
+      }
+
+      // Step 2: modifying files
+      switch (source) {
+        case 'Classes/Domain/Model/ModelTemplate.php':
+          for (let property of modelProperties) {
+            this._writingModelProperty(property, variables)
+          }
+          break;
+        case 'Resources/Private/Language/table.xlf':
+          for (let property of modelProperties) {
+            this._writingLanguage(property, variables)
+          }
+          break;
+      }
     }
-
-    // Step 2: modify file
-    this.log('Modifying ' + target);
-
-    Object.keys(modelProperties).forEach(function(index) {
-      this._writingProperty(modelProperties[index], variables);
-    }, this);
-
-
-    //this.fs.append(targetContent, content);
   }
 
-  _writingProperty(property, variables) {
-    var source = this.templatePath('Classes/Domain/Model/ModelProperties.php');
-    var sourceContent = this.fs.read(source);
-
-    var target =  this.destinationPath('Classes/Domain/Model/' + variables.ModelName + '.php');
-    var targetContent = this.fs.read(target);
-
-    var snippet = '';
-
+  _writingModelProperty(property, variables) {
     variables.propertyName = property.name;
     variables.propertyType = property.type;
     variables.propertyDefault = 'null';
 
+    this.log(
+      chalk.yellow('Writing model property "' + variables.ModelName + '->' + variables.propertyName + '"')
+    );
+
+    var source = this.templatePath('Classes/Domain/Model/ModelProperties.php');
+    var target = this.destinationPath('Classes/Domain/Model/' + variables.ModelName + '.php');
+    var sourceContent = this.fs.read(source);
+    var targetContent = this.fs.read(target);
+
+    var snippet = '';
+
     if (property.type === 'string' || property.type === 'integer') {
       snippet = this._getTemplateSnippet('PROPERTY_DEF', sourceContent);
       snippet = ejs.render(snippet, variables);
-      console.dir(snippet);
 
-      targetContent = targetContent.replace('// END_PROPERTY_DEF', snippet + "\n\n" + '// END_PROPERTY_DEF');
+      if (snippet.length > 0) {
+        targetContent = targetContent.replace(
+          '// END_PROPERTY_DEF',
+          snippet + '\n\n' + '// END_PROPERTY_DEF'
+        );
+      }
+    }
+
+    this.fs.write(target, targetContent);
+  }
+
+  _writingLanguage(property, variables) {
+    variables.property = property.name.lcfirst();
+    variables.PropertyName = property.name.ucfirst();
+
+    this.log(
+      chalk.yellow('Writing language file "' + variables.table + '" (' + variables.property + ')')
+    );
+
+    var source = this.templatePath('Resources/Private/Language/property.xlf');
+    var target = this.destinationPath('Resources/Private/Language/' + variables.table + '.xlf');
+    var sourceContent = this.fs.read(source);
+    var targetContent = this.fs.read(target);
+
+    var snippet = '';
+
+    snippet = this._getTemplateSnippet('PROPERTY_LABEL', sourceContent);
+    snippet = ejs.render(snippet, variables);
+
+    if (snippet.length > 0) {
+      if (targetContent.indexOf(snippet) < 0) { // only replace if _not_ already in target file
+        targetContent = targetContent.replace(
+          /(\s*<\/body>)/,
+          '\n' + snippet + '$1'
+        );
+      }
     }
 
     this.fs.write(target, targetContent);
@@ -155,7 +211,7 @@ module.exports = class extends BaseGenerator {
 
   _getTemplateSnippet(snippetName, content) {
     var regex = new RegExp(
-      '^// BEGIN_' + snippetName + '$([\\s\\S]*)^// END_' + snippetName + '$',
+      '^[/-]{2} BEGIN_' + snippetName + '$([\\s\\S]*)^[/-]{2} END_' + snippetName + '$',
       'gms'
     );
     var snippet = regex.exec(content);
