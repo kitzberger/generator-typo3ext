@@ -151,6 +151,7 @@ module.exports = class extends BaseGenerator {
 
   _writingModelProperty(property, variables) {
     variables.propertyName = property.name;
+    variables.PropertyName = property.name.ucfirst();
     variables.propertyType = property.type;
     variables.propertyDefault = 'null';
 
@@ -173,15 +174,35 @@ module.exports = class extends BaseGenerator {
 
     var snippet = '';
 
-    if (property.type === 'string' || property.type === 'integer') {
+    var simpleTypes = ['string', 'text', 'integer', 'boolean'];
+
+    if (simpleTypes.indexOf(property.type) >= 0) {
+      if (property.type === 'text') {
+        property.type = 'string';
+      }
+
       snippet = this._getTemplateSnippet('PROPERTY_DEF', sourceContent);
       snippet = ejs.render(snippet, variables);
 
       if (snippet.length > 0) {
-        targetContent = targetContent.replace(
-          '// END_PROPERTY_DEF',
-          snippet + '\n\n// END_PROPERTY_DEF'
-        );
+        if (targetContent.indexOf(snippet) < 0) {
+          targetContent = targetContent.replace(
+            '// END_PROPERTY_DEF',
+            snippet + '\n\n// END_PROPERTY_DEF'
+          );
+        }
+      }
+
+      snippet = this._getTemplateSnippet('PROPERTY_XETTERS', sourceContent);
+      snippet = ejs.render(snippet, variables);
+
+      if (snippet.length > 0) {
+        if (targetContent.indexOf(snippet) < 0) {
+          targetContent = targetContent.replace(
+            '// END_PROPERTY_XETTERS',
+            snippet + '\n\n// END_PROPERTY_XETTERS'
+          );
+        }
       }
     }
 

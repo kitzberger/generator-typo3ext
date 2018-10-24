@@ -29,24 +29,24 @@ class <%- ModelName %> extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
 
 // BEGIN_PROPERTY_XETTERS
     /**
-     * Returns the title
+     * Returns the <%- propertyName %>
      *
-     * @return string $title
+     * @return <%- propertyType %> $<%- propertyName %>
      */
-    public function getTitle()
+    public function get<%- PropertyName %>()
     {
-        return $this->title;
+        return $this-><%- propertyName %>;
     }
 
     /**
-     * Sets the title
+     * Sets the <%- propertyName %>
      *
-     * @param string $title
+     * @param <%- propertyType %> $<%- propertyName %>
      * @return void
      */
-    public function setTitle($title)
+    public function set<%- PropertyName %>($<%- propertyName %>)
     {
-        $this->title = $title;
+        $this-><%- propertyName %> = $<%- propertyName %>;
     }
 // END_PROPERTY_XETTERS
 
