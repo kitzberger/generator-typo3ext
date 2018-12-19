@@ -5,7 +5,7 @@ const BaseGenerator = require('../base.js')
     , chalk = require('chalk')
     , ejs = require('ejs');
 
-module.exports = class extends BaseGenerator {
+module.exports = class TcaGenerator extends BaseGenerator {
 
   async prompting() {
     await super._promptingBasic()

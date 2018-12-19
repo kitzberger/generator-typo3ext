@@ -34,8 +34,8 @@ module.exports = class BaseGenerator extends Generator {
     });
   }
 
-  prompting() {
-    this._promptingBasic();
+  async prompting() {
+    await this._promptingBasic();
   }
 
   writing() {}

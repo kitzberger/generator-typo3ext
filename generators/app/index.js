@@ -4,7 +4,7 @@ const BaseGenerator = require('../base.js');
 const chalk = require('chalk');
 const glob = require('glob');
 
-module.exports = class extends BaseGenerator {
+module.exports = class ExtensionGenerator extends BaseGenerator {
   async prompting() {
     await super._promptingBasic();
   }

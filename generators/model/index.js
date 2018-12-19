@@ -5,13 +5,13 @@ const yosay = require('yosay');
 const chalk = require('chalk');
 const ejs = require('ejs');
 
-module.exports = class extends BaseGenerator {
+module.exports = class ModelGenerator extends BaseGenerator {
   async prompting() {
     await super._promptingBasic();
-    await this._promptingCli();
+    await this._promptingModel();
   }
 
-  async _promptingCli() {
+  async _promptingModel() {
     if (!this.options['skip-welcome']) {
       this.log(
         yosay(
