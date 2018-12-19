@@ -6,6 +6,13 @@ const chalk = require('chalk');
 const ejs = require('ejs');
 
 module.exports = class ModelGenerator extends BaseGenerator {
+  constructor(args, opts) {
+    super(args, opts);
+
+    this.argument('modelName', { type: String, required: true });
+    this.option('write', { desc: 'Write/update files', default: false });
+  }
+
   async prompting() {
     await super._promptingBasic();
     await this._promptingModel();
@@ -28,77 +35,159 @@ module.exports = class ModelGenerator extends BaseGenerator {
       console.dir(models);
     }
 
-    if (this.options.skipPrompting) {
-      if (Object.keys(models).length) {
-        this.log(chalk.green('Skip prompting, reading .yo-rc.json instead!'));
-        return;
+    if (this.options.modelName) {
+      if (models[this.options.modelName]) {
+        this.log(chalk.red('That model is already definied in .yo-rc.json!'));
+        process.exit();
+      } else {
+        this.log(
+          chalk.blue('\nSo let\'s create this new model "' + this.options.modelName + '"')
+        );
       }
-      this.log(
-        chalk.yellow('Sorry, cannot skip prompting, no models defined in .yo-rc.json!')
-      );
-    }
 
-    this.model = await this.prompt([
-      {
-        type: 'input',
-        name: 'name',
-        message: 'Name of model?'
-      }
-    ]);
+      this.model = {
+        name: this.options.modelName,
+        properties: []
+      };
 
-    this.model.properties = [];
-
-    do {
-      var property = await this.prompt([
+      var wantToPromptForProperties = await this.prompt([
         {
-          type: 'input',
-          name: 'name',
-          message: 'Name of the property?'
-        },
-        {
-          type: 'list',
-          name: 'type',
-          message: 'Type of the property?',
-          choices: [
-            'string',
-            'text',
-            'integer',
-            'boolean',
-            'date',
-            'datetime',
-            '\\Vendor\\Extension\\Domain\\Model\\...',
-            '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<\\Vendor\\Extension\\Domain\\Model\\...>'
-          ],
-          default: 'string'
-        },
-        {
-          type: 'confirm',
-          name: 'continue',
-          message: 'More properties?',
-          default: true
+            type: 'confirm',
+            name: 'continue',
+            message: 'Want to define some properties?',
+            default: true
         }
       ]);
-      this.model.properties.push({
-        name: property.name,
-        type: property.type
-      });
-    } while (property.continue);
 
-    console.dir(this.model);
+      if (wantToPromptForProperties.continue === true) {
+        do {
+          var property = await this.prompt([
+            {
+              type: 'input',
+              name: 'name',
+              message: 'Name of the property?'
+            },
+            {
+              type: 'list',
+              name: 'type',
+              message: 'Type of the property?',
+              choices: [
+                'string',
+                'text',
+                'integer',
+                'boolean',
+                'date',
+                'datetime',
+                {
+                  name:
+                    '\\' +
+                    this.config.get('VendorName') +
+                    '\\' +
+                    this.config.get('ExtKey') +
+                    '\\Domain\\Model\\...',
+                  value: 'relation-model'
+                },
+                {
+                  name: '\\Vendor\\Extension\\Domain\\Model\\...',
+                  value: 'relation-class'
+                },
+                {
+                  name:
+                    '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<\\' +
+                    this.config.get('VendorName') +
+                    '\\' +
+                    this.config.get('ExtKey') +
+                    '\\Domain\\Model\\...>',
+                  value: 'relation-mm-model'
+                },
+                {
+                  name:
+                    '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<\\Vendor\\Extension\\Domain\\Model\\...>',
+                  value: 'relation-mm-class'
+                }
+              ],
+              default: 'string'
+            },
+            {
+              type: 'input',
+              name: 'model',
+              message:
+                'Please name the domain model for this relation (model of this extension):',
+              when: function(answers) {
+                return answers.type === 'relation-model';
+              }
+            },
+            {
+              type: 'input',
+              name: 'class',
+              message: 'Please name the class for this relation (absolute class name):',
+              when: function(answers) {
+                return answers.type === 'relation-class';
+              }
+            },
+            {
+              type: 'input',
+              name: 'model',
+              message:
+                'Please name the domain model for this mm-relation (model of this extension):',
+              default: '',
+              when: function(answers) {
+                return answers.type === 'relation-mm-model';
+              }
+            },
+            {
+              type: 'input',
+              name: 'class',
+              message:
+                'Please name the domain model for this mm-relation (absolute class name):',
+              default: '',
+              when: function(answers) {
+                return answers.type === 'relation-mm-class';
+              }
+            },
+            {
+              type: 'confirm',
+              name: 'continue',
+              message: 'More properties?',
+              default: true
+            }
+          ]);
 
-    models[this.model.name] = this.model.properties;
-    this.config.set('models', models);
+          if (property.type === 'relation') {
+            property.relation = 'xxxxxx'; // FQN
+          }
+
+          this.model.properties.push({
+            name: property.name,
+            type: property.type,
+            relation: property.relation
+          });
+        } while (property.continue);
+      }
+
+      console.dir(this.model);
+
+      models[this.model.name] = this.model.properties;
+      this.config.set('models', models);
+    }
   }
 
   writing() {
-    var variables = this.config.getAll();
+    if (this.options.write === true) {
+      var variables = this.config.getAll();
 
-    for (let [modelName, modelProperties] of Object.entries(variables.models)) {
-      variables.modelName = modelName.lcfirst();
-      variables.ModelName = modelName.ucfirst();
-      variables.table = 'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
-      this._writingModelFiles(modelName, modelProperties, variables);
-      this._writingSQL(modelName, modelProperties, variables);
+      if (variables.models === undefined) {
+        this.log(chalk.red('No models to write!'));
+        process.exit();
+      }
+
+      for (let [modelName, modelProperties] of Object.entries(variables.models)) {
+        variables.modelName = modelName.lcfirst();
+        variables.ModelName = modelName.ucfirst();
+        variables.table = 'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
+        this._writingModelFiles(modelName, modelProperties, variables);
+        this._writingSQL(modelName, modelProperties, variables);
+      }
     }
   }
 
