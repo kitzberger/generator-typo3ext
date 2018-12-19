@@ -7,12 +7,21 @@ const chalk = require('chalk');
 module.exports = class BaseGenerator extends Generator {
   constructor(args, opts) {
     super(args, opts);
-
+    this.option('skip-welcome', {
+      type: Boolean,
+      alias: 'w',
+      desc: 'Do not ask me anything, just do it already!',
+      default: false
+    });
     this.option('skip-git', {
+      type: Boolean,
+      alias: 'g',
       desc: 'Do not automatically initialize git repositiry',
       default: false
     });
     this.option('skip-prompting', {
+      type: Boolean,
+      alias: 'p',
       desc: 'Do not ask me anything, just do it already!',
       default: false
     });
@@ -40,13 +49,13 @@ module.exports = class BaseGenerator extends Generator {
   async _promptingBasic() {
     if (this.options.skipPrompting) {
       if (this.config.get('author_name')) {
-        this.log(chalk.green('Skip prompting, reading .yo-rc.json instead!'));
+        this.log(chalk.green('Skip general prompting, reading .yo-rc.json instead!'));
         return;
       }
       this.log(chalk.yellow('Sorry, cannot skip prompting, no .yo-rc.json present!'));
     }
 
-    if (!this.options['skip-welcome-message']) {
+    if (!this.options['skip-welcome']) {
       this.log(yosay("Hi there! Let's create cool TYPO3 extension together, shall we?"));
     }
 

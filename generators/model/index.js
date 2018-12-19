@@ -12,7 +12,7 @@ module.exports = class extends BaseGenerator {
   }
 
   async _promptingCli() {
-    if (!this.options['skip-welcome-message']) {
+    if (!this.options['skip-welcome']) {
       this.log(
         yosay(
           "Alright! Let's create some model for our TYPO3 extension together, shall we?"
