@@ -20,7 +20,7 @@ module.exports = class BaseGenerator extends Generator {
     // Defaults for user input storage .yo-rc.json
     this.config.defaults({
       ext_key: this.appname,
-      t3_version: '8.7.*',
+      t3_version: '8.7.0',
       t3_language: 'en'
     });
   }
@@ -94,19 +94,19 @@ module.exports = class BaseGenerator extends Generator {
         choices: [
           {
             name: '9 LTS',
-            value: '9.5.*'
+            value: '9.5.0'
           },
           {
             name: '8 LTS',
-            value: '8.7.*'
+            value: '8.7.0'
           },
           {
             name: '7 LTS',
-            value: '7.6.*'
+            value: '7.6.0'
           },
           {
             name: '6 LTS',
-            value: '6.2.*'
+            value: '6.2.0'
           }
         ],
         default: this.config.get('t3_version')
@@ -142,13 +142,13 @@ module.exports = class BaseGenerator extends Generator {
     this.config.set('ext_desc', answers.ext_desc);
     this.config.set(
       'package_name',
-      answers.vendor_name.toLowerCase().replace('_', '-') +
+      answers.vendor_name.toLowerCase().replace(/_/g, '-') +
         '/' +
-        answers.ext_key.replace('_', '-')
+        answers.ext_key.replace(/_/g, '-')
     );
     this.config.set('VendorName', answers.vendor_name.toUpperCamelCase());
     this.config.set('ExtKey', answers.ext_key.toUpperCamelCase());
-    this.config.set('extkey', answers.ext_key.toLowerCase().replace('_', ''));
+    this.config.set('extkey', answers.ext_key.toLowerCase().replace(/_/g, ''));
 
     this.config.set('t3_version', answers.t3_version);
     this.config.set('t3_language', answers.t3_language);
