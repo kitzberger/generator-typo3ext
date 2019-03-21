@@ -6,6 +6,13 @@ use \TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class <%- controller %>CommandController extends CommandController
 {
+	/** @var \TYPO3\CMS\Core\Log\Logger */
+	protected $logger = null;
+
+	public function __construct()
+	{
+		$this->logger = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Log\LogManager::class)->getLogger(__CLASS__);
+	}
 
 	/**
 	 * ...
@@ -19,6 +26,15 @@ class <%- controller %>CommandController extends CommandController
 			$this->outputWarning('Please specify pid!' . "\n");
 			exit;
 		}
+	}
+
+	/**
+	 * @param  string $str
+	 * @param  int $level
+	 */
+	protected function log($str, $level = LogLevel::INFO)
+	{
+		$this->logger->log($level, $str);
 	}
 
 	protected function outputError($text, array $arguments = array())
