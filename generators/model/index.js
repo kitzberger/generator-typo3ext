@@ -9,7 +9,11 @@ module.exports = class ModelGenerator extends BaseGenerator {
   constructor(args, opts) {
     super(args, opts);
 
-    this.argument('modelName', { type: String, required: true });
+    this.argument('modelName', {
+      desc: 'Should be singular',
+      type: String,
+      required: false
+    });
     this.option('write', { desc: 'Write/update files', default: false });
   }
 
@@ -52,12 +56,19 @@ module.exports = class ModelGenerator extends BaseGenerator {
 
       var wantToPromptForProperties = await this.prompt([
         {
-            type: 'confirm',
-            name: 'continue',
-            message: 'Want to define some properties?',
-            default: true
+          type: 'confirm',
+          name: 'continue',
+          message: 'Want to define some properties?',
+          default: true
         }
       ]);
+
+      let fqnPrefix =
+        '\\' +
+        this.config.get('VendorName') +
+        '\\' +
+        this.config.get('ExtKey') +
+        '\\Domain\\Model\\';
 
       if (wantToPromptForProperties.continue === true) {
         do {
@@ -79,12 +90,7 @@ module.exports = class ModelGenerator extends BaseGenerator {
                 'date',
                 'datetime',
                 {
-                  name:
-                    '\\' +
-                    this.config.get('VendorName') +
-                    '\\' +
-                    this.config.get('ExtKey') +
-                    '\\Domain\\Model\\...',
+                  name: fqnPrefix + '...',
                   value: 'relation-model'
                 },
                 {
@@ -93,11 +99,9 @@ module.exports = class ModelGenerator extends BaseGenerator {
                 },
                 {
                   name:
-                    '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<\\' +
-                    this.config.get('VendorName') +
-                    '\\' +
-                    this.config.get('ExtKey') +
-                    '\\Domain\\Model\\...>',
+                    '\\TYPO3\\CMS\\Extbase\\Persistence\\ObjectStorage<' +
+                    fqnPrefix +
+                    '...>',
                   value: 'relation-mm-model'
                 },
                 {
@@ -153,8 +157,11 @@ module.exports = class ModelGenerator extends BaseGenerator {
             }
           ]);
 
-          if (property.type === 'relation') {
-            property.relation = 'xxxxxx'; // FQN
+          if (property.type === 'relation-model') {
+            property.relation = fqnPrefix + property.model;
+          }
+          if (property.type === 'relation-class') {
+            property.relation = property.class;
           }
 
           this.model.properties.push({
@@ -184,7 +191,8 @@ module.exports = class ModelGenerator extends BaseGenerator {
       for (let [modelName, modelProperties] of Object.entries(variables.models)) {
         variables.modelName = modelName.lcfirst();
         variables.ModelName = modelName.ucfirst();
-        variables.table = 'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
+        variables.table =
+          'tx_' + variables.extkey + '_domain_model_' + variables.modelName;
         this._writingModelFiles(modelName, modelProperties, variables);
         this._writingSQL(modelName, modelProperties, variables);
       }

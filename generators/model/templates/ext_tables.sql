@@ -7,7 +7,11 @@ CREATE TABLE <%- table %> (
     pid int(11) DEFAULT '0' NOT NULL,
     tstamp int(11) DEFAULT '0' NOT NULL,
     crdate int(11) DEFAULT '0' NOT NULL,
-    cruser_id int(11) DEFAULT '0' NOT NULL
+    cruser_id int(11) DEFAULT '0' NOT NULL,
+    deleted tinyint(4) unsigned DEFAULT '0' NOT NULL,
+    hidden tinyint(4) unsigned DEFAULT '0' NOT NULL,
+    starttime int(11) unsigned DEFAULT '0' NOT NULL,
+    endtime int(11) unsigned DEFAULT '0' NOT NULL,
 );
 -- END_TABLE
 
@@ -23,6 +27,26 @@ CREATE TABLE <%- table %> (
     t3ver_move_id int(11) DEFAULT '0' NOT NULL,
     t3_origuid int(11) DEFAULT '0' NOT NULL
 -- BEGIN_FIELDS_VERSIONING
+
+-- BEGIN_FIELDS_EXTBASE_TYPE
+    tx_extbase_type varchar(255) DEFAULT '0' NOT NULL,
+-- END_FIELDS_EXTBASE_TYPE
+
+-- BEGIN_FIELDS_KEYS
+    PRIMARY KEY (uid),
+    KEY parent (pid),
+    KEY deleted (deleted),
+    KEY hidden (hidden),
+    KEY timesetting (starttime,endtime)
+-- END_FIELDS_KEYS
+
+-- BEGIN_FIELDS_VERSIONING_KEYS
+    KEY t3ver_oid (t3ver_oid,t3ver_wsid)
+-- END_FIELDS_VERSIONING_KEYS
+
+-- BEGIN_FIELD_EXTBASE_TYPE_KEY
+    KEY tx_extbase_type (tx_extbase_type)
+-- END_FIELD_EXTBASE_TYPE_KEY
 
 -- BEGIN_FIELD_INT
     <%- field %> int(11) unsigned DEFAULT '0' NOT NULL
