@@ -66,6 +66,21 @@ class <%- Command %>Command extends Command
 			$io->text($input->getArgument('text'));
 		}
 
+		// Interactive question
+		$choice = $io->choice(
+			'How to proceed?',
+			[
+				'Skip',
+				'Override',
+			],
+			'Skip'
+		);
+		if ($choice === 'Override') {
+			$io->text('<comment>It\'s a override, yes!</>');
+		} else {
+			$io->text('<fg=green>Hm, it\'s a skip, bummer!</>');
+		}
+
 		$records = $this->getRecords();
 		$io->text('It\'s ' . count($records) . ' tt_content records with a header that you\'ve got in your DB. Nice ;-)');
 	}
