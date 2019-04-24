@@ -27,7 +27,7 @@ module.exports = class extends BaseGenerator {
         message: 'What kind of CLI command?',
         choices: [
           {
-            name: 'Symfony',
+            name: 'Symfony (TYPO3 >= 8.0)',
             value: 'symfony'
           },
           {

@@ -4,6 +4,12 @@ namespace <%- VendorName %>\<%- ExtKey %>\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 
 class <%- Command %>Command extends Command
 {
@@ -28,6 +34,13 @@ class <%- Command %>Command extends Command
 			'How many times should the message be printed?',
 			1
 		);
+
+		$this->addOption(
+			'dry-run',
+			'd',
+			InputOption::VALUE_NONE,
+			'Dry-Run?'
+		);
 	}
 
 	/**
@@ -38,11 +51,54 @@ class <%- Command %>Command extends Command
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
+		// For more styles/helpers see: https://www.typo3lexikon.de/typo3-tutorials/core/console.html
+
 		$io = new SymfonyStyle($input, $output);
 		$io->title($this->getDescription());
+
+		$this->dryRun = (bool)$input->getOption('dry-run');
+
+		if ($this->dryRun) {
+			$io->text('No worries, it\'s a dry-run!');
+		}
 
 		for ($i = 0; $i < $input->getOption('iterations'); $i++) {
 			$io->text($input->getArgument('text'));
 		}
+
+		// Interactive question
+		$choice = $io->choice(
+			'How to proceed?',
+			[
+				'Skip',
+				'Override',
+			],
+			'Skip'
+		);
+		if ($choice === 'Override') {
+			$io->text('<comment>It\'s a override, yes!</>');
+		} else {
+			$io->text('<fg=green>Hm, it\'s a skip, bummer!</>');
+		}
+
+		$records = $this->getRecords();
+		$io->text('It\'s ' . count($records) . ' tt_content records with a header that you\'ve got in your DB. Nice ;-)');
+	}
+
+	protected function getRecords()
+	{
+		$queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tt_content');
+		$queryBuilder->getRestrictions()
+			->removeAll()
+			->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+
+		$rows = $queryBuilder
+			->select($fields)
+			->from('tt_content')
+			->where($queryBuilder->expr()->neq('header', $queryBuilder->createNamedParameter('')))
+			->execute()
+			->fetchAll();
+
+		return $rows;
 	}
 }
