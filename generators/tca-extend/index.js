@@ -26,12 +26,12 @@ module.exports = class extends BaseGenerator {
       {
         type    : 'input',
         name    : 'new_extbase_type',
-        message : 'Name of new extbase type (if that\' what you want)?'
+        message : 'Name of new extbase type (if that\'s what you want)?'
       },
       {
         type    : 'input',
         name    : 'new_palette',
-        message : 'Name of new palette (if that\' what you want)?'
+        message : 'Name of new palette (if that\'s what you want)?'
       }
     ]
 
@@ -47,12 +47,17 @@ module.exports = class extends BaseGenerator {
     var source = 'Configuration/TCA/Overrides/table.php'
       , target = 'Configuration/TCA/Overrides/' + variables.table + '.php'
 
-    this.log('Creating ' + target)
-    this.fs.copyTpl(
-      this.templatePath(source),
-      this.destinationPath(target),
-      variables
-    )
+    if (this.fs.exists(target) === false) {
+      this.log('Creating ' + target)
+      this.fs.write(target, this._getPhpBaseContent())
+    }
+
+    var sourceContent = this.fs.read(this.templatePath(source))
+      , sourceContent = this._getTemplateSnippet(null, sourceContent)
+      , targetContent = ejs.render(sourceContent, variables)
+
+    this.log('Modifying ' + target)
+    this.fs.append(target, targetContent);
 
     var source = 'Resources/Private/Language/table.xlf'
       , target = 'Resources/Private/Language/' + variables.table + '.xlf'

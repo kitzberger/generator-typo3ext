@@ -1,6 +1,7 @@
 <?php
 defined ('TYPO3_MODE') || die ('Access denied.');
 
+// BEGIN
 $tca = [
 	'columns' => [
 		<% if (new_extbase_type) { %>'tx_extbase_type' => [
@@ -94,7 +95,7 @@ $tca = [
 	],<% } %><% if (new_extbase_type) { %>
 	'types' => [
 		'<%- new_extbase_type %>' => [
-			'showitem' => 'hidden, <% if (new_extbase_type) { %>tx_extbase_type, <% } %>title, --palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.new_palette;new_palette, --div--;LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:tabs.access, starttime, endtime',
+			'showitem' => 'hidden, <% if (new_extbase_type) { %>tx_extbase_type, <% } %>title, --palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.<%- new_palette %>;<%- new_palette %>, --div--;LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:tabs.access, starttime, endtime',
 		],
 	],
 	'ctrl' => [
@@ -105,3 +106,7 @@ $tca = [
 ];
 
 $GLOBALS['TCA']['<%- table %>'] = array_replace_recursive($GLOBALS['TCA']['<%- table %>'], $tca);
+<% if (new_palette && !new_extbase_type) { %>
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('<%- table %>', '--palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.<%- new_palette %>;<%- new_palette %>');
+<% } %>
+// END

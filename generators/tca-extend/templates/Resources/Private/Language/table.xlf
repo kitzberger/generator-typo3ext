@@ -21,9 +21,6 @@
       <trans-unit id="<%- table %>.new_link_field">
         <source>New Link Field</source>
       </trans-unit>
-      <trans-unit id="<%- table %>.palette.new_palette">
-        <source>New Palette</source>
-      </trans-unit>
     </body>
   </file>
 </xliff>
