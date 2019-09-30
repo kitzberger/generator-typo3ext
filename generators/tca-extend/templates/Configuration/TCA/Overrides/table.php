@@ -14,7 +14,15 @@ $tca = [
 				],
 			],
 		],
-		<% } %>'new_date_field' => [
+		<% } %>'new_checkbox_field' => [
+			'exclude' => 0,
+			'label' => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_checkbox_field',
+			'config' => [
+				'type' => 'check',
+				'default' => 0,
+			],
+		],
+		'new_date_field' => [
 			'exclude' => 0,
 			'label' => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_date_field',
 			'config' => [
@@ -109,4 +117,6 @@ $GLOBALS['TCA']['<%- table %>'] = array_replace_recursive($GLOBALS['TCA']['<%- t
 <% if (new_palette && !new_extbase_type) { %>
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('<%- table %>', '--palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.<%- new_palette %>;<%- new_palette %>');
 <% } %>
+#\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToAllPalettesOfField('<%- table %>', 'existing_xxx_field', 'new_checkbox_field,new_date_field,new_rte_field,new_image_field,new_link_field');
+#\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette('<%- table %>', 'existing_or_new_xxx_palette', 'new_checkbox_field,new_date_field,new_rte_field,new_image_field,new_link_field');
 // END
