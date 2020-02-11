@@ -94,6 +94,20 @@ $tca = [
 				],
 			],
 		],
+		'new_select_field' => [
+			'exclude' => 0,
+			'label' => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_select_field',
+			'config' => [
+				'type' => 'select',
+				'renderType' => 'selectSingle',
+				'default' => 0,
+				'items' => [
+					[0 => '', 1 => ''],
+					[0 => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_select_field.label-1', 1 => 'value-1'],
+					[0 => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_select_field.label-2', 1 => 'value-2'],
+				],
+			],
+		],
 	],<% if (new_palette) { %>
 	'palettes' => [
 		'<%- new_palette %>' => [

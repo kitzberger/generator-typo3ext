@@ -24,6 +24,15 @@
       <trans-unit id="<%- table %>.new_link_field">
         <source>New Link Field</source>
       </trans-unit>
+      <trans-unit id="<%- table %>.new_select_field">
+        <source>New Select Field</source>
+      </trans-unit>
+      <trans-unit id="<%- table %>.new_select_field.label-1">
+        <source>New Select Field Option 1</source>
+      </trans-unit>
+      <trans-unit id="<%- table %>.new_select_field.label-2">
+        <source>New Select Field Option 2</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>
