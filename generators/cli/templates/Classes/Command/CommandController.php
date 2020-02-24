@@ -3,15 +3,32 @@ namespace <%- VendorName %>\<%- ExtKey %>\Command;
 
 use \TYPO3\CMS\Extbase\Mvc\Controller\CommandController;
 use \TYPO3\CMS\Core\Utility\GeneralUtility;
+use \TYPO3\CMS\Core\Log\LogLevel;
 
 class <%- controller %>CommandController extends CommandController
 {
 	/** @var \TYPO3\CMS\Core\Log\Logger */
 	protected $logger = null;
 
+	/**
+	 * @var \TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface
+	 * @inject
+	 */
+	protected $configurationManager;
+
+	/**
+	 * @var array
+	 */
+	protected $settings = array();
+
 	public function __construct()
 	{
 		$this->logger = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Log\LogManager::class)->getLogger(__CLASS__);
+
+		// Reads the following TypoScript: module.tx_<%- extkey %>.settings
+		$this->settings = $this->configurationManager->getConfiguration(
+			\TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface::CONFIGURATION_TYPE_SETTINGS
+		);
 	}
 
 	/**

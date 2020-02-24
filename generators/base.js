@@ -163,6 +163,27 @@ module.exports = class BaseGenerator extends Generator {
     this.config.set('t3_language', answers.t3_language);
     this.config.set('t3_language_1', answers.t3_language === 'de' ? 'en' : 'de');
   }
+
+  _getTemplateSnippet(snippetName, content) {
+    if (snippetName) {
+      snippetName = '_' + snippetName;
+    } else {
+      snippetName = '';
+    }
+
+    var regex = new RegExp(
+      '^[/-]{2} BEGIN' + snippetName + '$([\\s\\S]*)^[/-]{2} END' + snippetName + '$',
+      'gms'
+    );
+    var snippet = regex.exec(content);
+    // This.log(regex);
+    // this.log(snippet);
+    return snippet[1].replace(/^\n+|\n+$/g, '');
+  }
+
+  _getPhpBaseContent() {
+    return '<?php\ndefined (\'TYPO3_MODE\') || die (\'Access denied.\');\n\n';
+  }
 };
 
 String.prototype.ucfirst = function() {

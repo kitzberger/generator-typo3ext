@@ -1,6 +1,7 @@
 <?php
 defined ('TYPO3_MODE') || die ('Access denied.');
 
+// BEGIN
 $tca = [
 	'columns' => [
 		<% if (new_extbase_type) { %>'tx_extbase_type' => [
@@ -13,7 +14,15 @@ $tca = [
 				],
 			],
 		],
-		<% } %>'new_date_field' => [
+		<% } %>'new_checkbox_field' => [
+			'exclude' => 0,
+			'label' => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_checkbox_field',
+			'config' => [
+				'type' => 'check',
+				'default' => 0,
+			],
+		],
+		'new_date_field' => [
 			'exclude' => 0,
 			'label' => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_date_field',
 			'config' => [
@@ -85,6 +94,20 @@ $tca = [
 				],
 			],
 		],
+		'new_select_field' => [
+			'exclude' => 0,
+			'label' => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_select_field',
+			'config' => [
+				'type' => 'select',
+				'renderType' => 'selectSingle',
+				'default' => 0,
+				'items' => [
+					[0 => '', 1 => ''],
+					[0 => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_select_field.label-1', 1 => 'value-1'],
+					[0 => 'LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.new_select_field.label-2', 1 => 'value-2'],
+				],
+			],
+		],
 	],<% if (new_palette) { %>
 	'palettes' => [
 		'<%- new_palette %>' => [
@@ -94,7 +117,7 @@ $tca = [
 	],<% } %><% if (new_extbase_type) { %>
 	'types' => [
 		'<%- new_extbase_type %>' => [
-			'showitem' => 'hidden, <% if (new_extbase_type) { %>tx_extbase_type, <% } %>title, --palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.new_palette;new_palette, --div--;LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:tabs.access, starttime, endtime',
+			'showitem' => 'hidden, <% if (new_extbase_type) { %>tx_extbase_type, <% } %>title, --palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.<%- new_palette %>;<%- new_palette %>, --div--;LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:tabs.access, starttime, endtime',
 		],
 	],
 	'ctrl' => [
@@ -105,3 +128,9 @@ $tca = [
 ];
 
 $GLOBALS['TCA']['<%- table %>'] = array_replace_recursive($GLOBALS['TCA']['<%- table %>'], $tca);
+<% if (new_palette && !new_extbase_type) { %>
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addToAllTCAtypes('<%- table %>', '--palette--;LLL:EXT:<%- ext_key %>/Resources/Private/Language/<%- table %>.xlf:<%- table %>.palette.<%- new_palette %>;<%- new_palette %>');
+<% } %>
+#\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToAllPalettesOfField('<%- table %>', 'existing_xxx_field', 'new_checkbox_field,new_date_field,new_rte_field,new_image_field,new_link_field');
+#\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addFieldsToPalette('<%- table %>', 'existing_or_new_xxx_palette', 'new_checkbox_field,new_date_field,new_rte_field,new_image_field,new_link_field');
+// END
