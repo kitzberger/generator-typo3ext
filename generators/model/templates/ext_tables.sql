@@ -64,6 +64,10 @@ CREATE TABLE <%- table %> (
     <%- field %> tinyint(4) DEFAULT '0' NOT NULL
 -- END_FIELD_BOOLEAN
 
+-- BEGIN_FIELD_DATE
+    <%- field %> int(11) unsigned DEFAULT NULL
+-- END_FIELD_DATE
+
 -- BEGIN_TABLE_MM
 --
 -- Table structure for table '<%- table %>'

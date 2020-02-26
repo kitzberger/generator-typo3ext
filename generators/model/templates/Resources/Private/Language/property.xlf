@@ -3,6 +3,9 @@
   <file source-language="<%- t3_language %>" datatype="plaintext" original="messages" date="2015-01-13T10:23:00Z" product-name="<%- ext_key %>">
     <header/>
     <body>
+      <trans-unit id="<%- table %>">
+        <source><%- ModelName %></source>
+      </trans-unit>
 // BEGIN_PROPERTY_LABEL
       <trans-unit id="<%- table %>.<%- property %>">
         <source><%- PropertyName %></source>

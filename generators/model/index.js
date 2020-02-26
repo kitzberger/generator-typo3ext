@@ -69,6 +69,7 @@ module.exports = class ModelGenerator extends BaseGenerator {
         '\\' +
         this.config.get('ExtKey') +
         '\\Domain\\Model\\';
+      let tablePrefix = 'tx_' + this.config.get('extkey') + '_domain_model_'
 
       if (wantToPromptForProperties.continue === true) {
         do {
@@ -123,6 +124,18 @@ module.exports = class ModelGenerator extends BaseGenerator {
             },
             {
               type: 'input',
+              name: 'table',
+              message:
+                'Please name the table for this relation:',
+              default: function(answers) {
+                return tablePrefix + answers.model.toLowerCase();
+              },
+              when: function(answers) {
+                return answers.type === 'relation-model';
+              }
+            },
+            {
+              type: 'input',
               name: 'class',
               message: 'Please name the class for this relation (absolute class name):',
               when: function(answers) {
@@ -167,7 +180,8 @@ module.exports = class ModelGenerator extends BaseGenerator {
           this.model.properties.push({
             name: property.name,
             type: property.type,
-            relation: property.relation
+            relation: property.relation,
+            table: property.table
           });
         } while (property.continue);
       }
@@ -213,6 +227,10 @@ module.exports = class ModelGenerator extends BaseGenerator {
         'Classes/Domain/Repository/' + variables.ModelName + 'Repository.php'
       ],
       [
+        'Configuration/TCA/TcaTemplate.php',
+        'Configuration/TCA/' + variables.table + '.php'
+      ],
+      [
         'Resources/Private/Language/table.xlf',
         'Resources/Private/Language/' + variables.table + '.xlf'
       ]
@@ -234,6 +252,11 @@ module.exports = class ModelGenerator extends BaseGenerator {
         case 'Classes/Domain/Model/ModelTemplate.php':
           for (let property of modelProperties) {
             this._writingModelProperty(property, variables);
+          }
+          break;
+        case 'Configuration/TCA/TcaTemplate.php':
+          for (let property of modelProperties) {
+            this._writingTcaProperty(property, variables);
           }
           break;
         case 'Resources/Private/Language/table.xlf':
@@ -298,6 +321,70 @@ module.exports = class ModelGenerator extends BaseGenerator {
           targetContent = targetContent.replace(
             '// END_PROPERTY_XETTERS',
             snippet + '\n\n// END_PROPERTY_XETTERS'
+          );
+        }
+      }
+    }
+
+    this.fs.write(target, targetContent);
+  }
+
+  _writingTcaProperty(property, variables) {
+    variables.propertyName = property.name;
+    variables.PropertyName = property.name.ucfirst();
+    variables.propertyType = property.type;
+    variables.propertyDefault = 'null';
+    variables.tx_related_table = property.table;
+
+    this.log(
+      chalk.yellow(
+        'Writing TCA property "' +
+          variables.ModelName +
+          '->' +
+          variables.propertyName +
+          '"'
+      )
+    );
+
+    var source = this.templatePath('Configuration/TCA/TcaProperties.php');
+    var target = this.destinationPath(
+      'Configuration/TCA/' + variables.table + '.php'
+    );
+    var sourceContent = this.fs.read(source);
+    var targetContent = this.fs.read(target);
+
+    var snippet = '';
+
+    var simpleTypes = ['string', 'text', 'rte', 'integer', 'boolean', 'relation-model'];
+
+    if (simpleTypes.indexOf(property.type) >= 0) {
+      let tcaType
+      switch (property.type) {
+        case 'text':
+          tcaType = 'TEXT';
+          break;
+        case 'rte':
+          tcaType = 'RTE';
+          break;
+        case 'datetime':
+          tcaType = 'DATETIME';
+          break;
+        case 'relation-model':
+          tcaType = 'GROUP_DB_SINGLE';
+          break;
+        default:
+          tcaType = 'TEXT';
+      }
+
+      snippet = this._getTemplateSnippet('FIELD_' + tcaType, sourceContent);
+      snippet = ejs.render(snippet, variables);
+
+      if (snippet.length > 0) {
+        if (targetContent.indexOf(snippet) < 0) {
+          console.log(targetContent)
+          targetContent = targetContent.replace(
+            '// END_COLUMN_DEF',
+            snippet + '\n\n// END_COLUMN_DEF'
           );
         }
       }
@@ -376,6 +463,7 @@ module.exports = class ModelGenerator extends BaseGenerator {
       let sqlType;
       switch (property.type) {
         case 'integer':
+        case 'relation-model':
           sqlType = 'INT';
           break;
         case 'boolean':
@@ -384,6 +472,12 @@ module.exports = class ModelGenerator extends BaseGenerator {
         case 'string':
           sqlType = 'VARCHAR';
           break;
+        case 'date':
+        case 'datetime':
+          sqlType = 'DATE';
+          break;
+        case 'text':
+        case 'rte':
         default:
           sqlType = 'TEXT';
       }
