@@ -20,7 +20,7 @@ module.exports = class BaseGenerator extends Generator {
     // Defaults for user input storage .yo-rc.json
     this.config.defaults({
       ext_key: this.appname,
-      t3_version: '8.7.0',
+      t3_version: '10.4.0',
       t3_language: 'en'
     });
   }
@@ -92,6 +92,10 @@ module.exports = class BaseGenerator extends Generator {
         name: 't3_version',
         message: 'Which minimum version of TYPO3 you wanna support?',
         choices: [
+          {
+            name: '10 LTS',
+            value: '10.4.0'
+          },
           {
             name: '9 LTS',
             value: '9.5.0'
@@ -173,7 +177,7 @@ module.exports = class BaseGenerator extends Generator {
   }
 
   _getPhpBaseContent() {
-    return '<?php\ndefined (\'TYPO3_MODE\') || die (\'Access denied.\');\n\n';
+    return "<?php\ndefined ('TYPO3_MODE') || die ('Access denied.');\n\n";
   }
 };
 

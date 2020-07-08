@@ -7,12 +7,25 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Log\LogLevel;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 
 class <%- Command %>Command extends Command
 {
+	/**
+	 * @var SymfonyStyle
+	 */
+	protected $io = null;
+
+	/**
+	 * @var []
+	 */
+	protected $conf = null;
+
 	/**
 	 * Configure the command by defining the name
 	 */
@@ -53,8 +66,12 @@ class <%- Command %>Command extends Command
 	{
 		// For more styles/helpers see: https://www.typo3lexikon.de/typo3-tutorials/core/console.html
 
-		$io = new SymfonyStyle($input, $output);
-		$io->title($this->getDescription());
+		if ($output->isVerbose()) {
+			$this->io = new SymfonyStyle($input, $output);
+			$this->io->title($this->getDescription());
+		}
+
+		$this->conf = $GLOBALS['TYPO3_CONF_VARS']['EXTENSIONS']['<%- ext_key %>'];
 
 		$this->dryRun = (bool)$input->getOption('dry-run');
 
@@ -76,13 +93,27 @@ class <%- Command %>Command extends Command
 			'Skip'
 		);
 		if ($choice === 'Override') {
-			$io->text('<comment>It\'s a override, yes!</>');
+			$this->outputLine('<comment>It\'s a override, yes!</>');
 		} else {
-			$io->text('<fg=green>Hm, it\'s a skip, bummer!</>');
+			$this->outputLine('<fg=green>Hm, it\'s a skip, bummer!</>');
 		}
 
 		$records = $this->getRecords();
-		$io->text('It\'s ' . count($records) . ' tt_content records with a header that you\'ve got in your DB. Nice ;-)');
+		$this->outputLine('It\'s ' . count($records) . ' tt_content records with a header that you\'ve got in your DB. Nice ;-)');
+	}
+
+	/**
+	 * Outputs specified text to the console window and appends a line break
+	 *
+	 * @param  string $string Text to output
+	 * @param  array  $arguments Optional arguments to use for sprintf
+	 * @return void
+	 */
+	protected function outputLine(string $string, $arguments = [])
+	{
+		if ($this->io) {
+			$this->io->text($string);
+		}
 	}
 
 	protected function getRecords()

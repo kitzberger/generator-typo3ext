@@ -1,0 +1,11 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  <%- VendorName %>\<%- ExtKey %>\Command\<%- Command %>Command:
+    tags:
+      - name: 'console.command'
+        command: '<%- ext_key %>:<%- command %>'
+        schedulable: true

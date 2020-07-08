@@ -84,8 +84,13 @@ module.exports = class extends BaseGenerator {
       this.fs.copyTpl(this.templatePath(source), this.destinationPath(target), variables);
 
       // File 2
-      source = 'Configuration/Commands.php';
-      target = 'Configuration/Commands.php';
+      if (parseInt(variables.t3_version) > 9) {
+        source = 'Configuration/Services.yaml';
+        target = 'Configuration/Services.yaml';
+      } else {
+        source = 'Configuration/Commands.php';
+        target = 'Configuration/Commands.php';
+      }
 
       this.log('Creating ' + target);
       this.fs.copyTpl(this.templatePath(source), this.destinationPath(target), variables);
