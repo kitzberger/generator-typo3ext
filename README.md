@@ -41,6 +41,24 @@ Need some CLI command controller?
 yo typo3ext:cli [--skip-prompting]
 ```
 
+Need some TCA extending?
+
+```bash
+yo typo3ext:tca-extend [--skip-prompting]
+```
+
+Need some new slug field?
+
+```bash
+yo typo3ext:tca-slug [--skip-prompting]
+```
+
+Need some upgrade wizard class?
+
+```bash
+yo typo3ext:update [--skip-prompting]
+```
+
 ## License
 
 MPL-2.0 © [Philipp Kitzberger](https://github.com/kitzberger)

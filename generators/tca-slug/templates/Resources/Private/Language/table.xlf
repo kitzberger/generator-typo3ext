@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+  <file source-language="<%- t3_language %>" datatype="plaintext" original="messages" date="2015-01-13T10:23:00Z" product-name="<%- ext_key %>">
+    <header/>
+    <body>
+      <trans-unit id="<%- table %>.<%- slug_column %>">
+        <source>Slug</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

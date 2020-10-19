@@ -14,7 +14,7 @@ module.exports = class extends BaseGenerator {
 
   async _promptingCli() {
     if (!this.options['skip-welcome-message']) {
-      this.log(yosay('Alright! Let\'s create some TCA extending for our TYPO3 extension together, shall we?'))
+      this.log(yosay('Alright! Let\'s create some slug column for our TYPO3 extension together, shall we?'))
     }
 
     var tcaPrompts = [
@@ -25,13 +25,15 @@ module.exports = class extends BaseGenerator {
       },
       {
         type    : 'input',
-        name    : 'new_extbase_type',
-        message : 'Name of new extbase type (if that\'s what you want)?'
+        name    : 'slug_column',
+        message : 'Name of new slug column?',
+        default : 'slug'
       },
       {
         type    : 'input',
-        name    : 'new_palette',
-        message : 'Name of new palette (if that\'s what you want)?'
+        name    : 'title_column',
+        message : 'Name of column that slugs are based upon?',
+        default : 'title'
       }
     ]
 
@@ -41,8 +43,8 @@ module.exports = class extends BaseGenerator {
   writing() {
     var variables = this.config.getAll()
     variables.table = this.tcaAnswers.table
-    variables.new_extbase_type = this.tcaAnswers.new_extbase_type
-    variables.new_palette = this.tcaAnswers.new_palette
+    variables.slug_column = this.tcaAnswers.slug_column
+    variables.title_column = this.tcaAnswers.title_column
 
     var source = 'Configuration/TCA/Overrides/table.php'
       , target = 'Configuration/TCA/Overrides/' + variables.table + '.php'
